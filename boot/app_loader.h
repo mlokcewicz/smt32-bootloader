@@ -1,12 +1,12 @@
 //------------------------------------------------------------------------------
 
-/// @file log_l476.h
+/// @file app_loader.h
 /// @note Copyright (C) Michał Łokcewicz. All rights reserved.
 
 //------------------------------------------------------------------------------
 
-#ifndef LOG_L476_H_
-#define LOG_L476_H_
+#ifndef APP_LOADER_H_
+#define APP_LOADER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,19 +14,17 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 
-#include <string.h>
-#include <stdio.h>
-
-#include <stm32l4xx_hal.h>
+#include <stdbool.h>
 
 //------------------------------------------------------------------------------
 
-void log_string(char *s);
+bool app_loader_init(void);
 
-void log_init(void);
+bool app_loader_is_dfu_requested(void);
 
-#define LOG(format, ...) {char buf[128]; sprintf(buf, format __VA_OPT__(,) __VA_ARGS__); log_string(buf);}
+bool app_loader_peform_dfu(void);
 
+void app_loader_jump_to_app(void);
 
 //------------------------------------------------------------------------------
 
@@ -34,6 +32,6 @@ void log_init(void);
 }
 #endif
 
-#endif /* LOG_L476_H_ */
+#endif /* APP_LOADER_H_ */
 
 //------------------------------------------------------------------------------
