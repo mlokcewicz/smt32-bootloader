@@ -1,0 +1,3 @@
+loadfile build/app/stm32_bootloader.elf
+r0
+q

@@ -1,0 +1,9 @@
+[submodule "external/CMSIS_5"]
+	path = external/CMSIS_5
+	url = https://github.com/ARM-software/CMSIS_5.git
+[submodule "external/cmsis_device_l4"]
+	path = external/cmsis_device_l4
+	url = https://github.com/STMicroelectronics/cmsis_device_l4.git
+[submodule "external/FreeRTOS-Kernel"]
+	path = external/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
