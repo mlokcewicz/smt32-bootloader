@@ -28,12 +28,24 @@ MEMORY
 SECTIONS
 {
   /* The startup code into ROM memory */
-  .isr_vector :
-  {
+.isr_vector :
+{
     . = ALIGN(4);
-    KEEP(*(.isr_vector)) /* Startup code */
+    _svector = .;
+
+    KEEP(*(.isr_vector))
+
     . = ALIGN(4);
-  } >ROM
+    _evector = .;
+} > ROM
+
+.ram_vector (NOLOAD) :
+{
+    . = ALIGN(0x200);
+    _sramvector = .;
+    . = . + SIZEOF(.isr_vector);
+    _eramvector = .;
+} > RAM
 
   .boot_startup :
   {
@@ -51,6 +63,8 @@ SECTIONS
 
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
+    *(.rodata)         /* .rodata sections (constants, strings, etc.) */
+    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     *(.glue_7)         /* glue arm to thumb code */
     *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
@@ -65,15 +79,6 @@ SECTIONS
   } >RAM AT> ROM
 
   _ram_code_load = LOADADDR(.ram_code);
-
-  /* Constant data into ROM memory*/
-  .rodata :
-  {
-    . = ALIGN(4);
-    *(.rodata)         /* .rodata sections (constants, strings, etc.) */
-    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
-    . = ALIGN(4);
-  } >ROM
 
   .ARM.extab (READONLY) : { 
   	. = ALIGN(4);

@@ -5,11 +5,17 @@
  *      Author: mlokc
  */
 
+#include <stm32l4xx.h>
+
 extern unsigned int _sidata;
 extern unsigned int _sdata;
 extern unsigned int _edata;
 extern unsigned int _sbss;
 extern unsigned int _ebss;
+
+extern unsigned int _svector;
+extern unsigned int _evector;
+extern unsigned int _sramvector;
 
 extern unsigned int _ram_code_load;
 extern unsigned int _ram_code_start;
@@ -27,6 +33,13 @@ void _exit(int a)
 
 __attribute__((weak, section(".boot_startup"))) void Reset_Handler(void)
 {
+    // copy .ram_vector to RAM
+    unsigned int *start_init_vector = &_svector;
+    unsigned int *start_ram_vector = &_sramvector;
+
+    while (start_init_vector < &_evector)
+        *start_ram_vector++ = *start_init_vector++;
+
     // copy .ram_code to RAM
     unsigned int *start_init_code = &_ram_code_load;
     unsigned int *start_ram_code = &_ram_code_start;
@@ -46,6 +59,10 @@ __attribute__((weak, section(".boot_startup"))) void Reset_Handler(void)
 
     while (start_bss < &_ebss)
         *start_bss++ = 0;
+    
+    SCB->VTOR = (unsigned int)&_sramvector;
+    __DSB();
+    __ISB();
 
     // __libc_init_array
     __libc_init_array();
