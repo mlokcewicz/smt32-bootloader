@@ -1,12 +1,12 @@
 //------------------------------------------------------------------------------
 
-/// @file iwdg.h
+/// @file led.h
 /// @note Copyright (C) Michał Łokcewicz. All rights reserved.
 
 //------------------------------------------------------------------------------
 
-#ifndef IWDG_H_
-#define IWDG_H_
+#ifndef LED_H_
+#define LED_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,23 +14,16 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 
-#include <hal.h>
-
 #include <stdbool.h>
 
 //------------------------------------------------------------------------------
 
-extern IWDG_HandleTypeDef hiwdg;
+/// @brief Sets the LED state.
+/// @param state true to turn the LED on, false to turn it off.
+void led_set(bool state);
 
-//------------------------------------------------------------------------------
-
-/// @brief Initializes and starts the independent watchdog.
-/// @note Once started, the independent watchdog cannot be stopped by software.
-void iwdg_init(void);
-
-/// @brief Reloads the independent watchdog counter.
-/// @note Call iwdg_init() before calling this function.
-void iwdg_feed(void);
+/// @brief Toggles the current LED state.
+void led_toggle(void);
 
 //------------------------------------------------------------------------------
 
@@ -38,6 +31,6 @@ void iwdg_feed(void);
 }
 #endif
 
-#endif /* IWDG_H_ */
+#endif /* LED_H_ */
 
 //------------------------------------------------------------------------------

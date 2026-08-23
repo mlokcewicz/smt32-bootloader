@@ -1,33 +1,24 @@
 //------------------------------------------------------------------------------
 
-/// @file iwdg.c
+/// @file led.c
 /// @note Copyright (C) Michał Łokcewicz. All rights reserved.
 
 //------------------------------------------------------------------------------
 
-#include "iwdg.h"
+#include "led.h"
+
+#include <hal.h>
 
 //------------------------------------------------------------------------------
 
-IWDG_HandleTypeDef hiwdg;
-
-//------------------------------------------------------------------------------
-
-void iwdg_init(void)
+void led_set(bool state)
 {
-  hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
-  hiwdg.Init.Window = 4095;
-  hiwdg.Init.Reload = 4095;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, state ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-void iwdg_feed(void)
+void led_toggle(void)
 {
-  HAL_IWDG_Refresh(&hiwdg);
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 }
 
 //------------------------------------------------------------------------------

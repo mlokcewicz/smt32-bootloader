@@ -12,6 +12,7 @@
 #include <hal.h>
 
 #include <app_loader.h>
+#include <data_exchange.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -115,18 +116,16 @@ static void dfu_task(void *pvParameters)
     printf("BOOT started...\n");
 
     uint32_t blink_counts = 20;
+    struct data_exchange_data *data = data_exchange_get_data();
+
+    printf("APP version: %s, dfu request: %d\n", data->app_ver, data->dfu_entry_req);
+    
+    data_exchange_set_boot_ver("v0.1.3");
 
     while (blink_counts--)
     {
-        HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+        led_toggle();
         HAL_Delay(150);
-        
-        if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)
-        {
-            printf("TEST\n");
-            
-            while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET){};
-        }
     }
 
     app_loader_jump_to_app();
@@ -152,7 +151,7 @@ int main()
     gpio_init();
     dma_init();
     uart_init();
-    // iwdg_init();
+    iwdg_init();
 
     xTaskCreate(dfu_task, "DFU", 512, NULL, 1, NULL);
 
@@ -164,3 +163,14 @@ int main()
 }
 
 //------------------------------------------------------------------------------
+
+/*
+
+- common section (dfu req, app version, boot version, crc)
+- dfu req on button
+- ramexe
+- CRC handling befora start
+- UART handling - transport
+- FLASH handling
+
+*/

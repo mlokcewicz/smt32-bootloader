@@ -18,12 +18,21 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 
+/// @brief Initializes the application loader.
+/// @return true if initialization succeeds, otherwise false.
 bool app_loader_init(void);
 
+/// @brief Checks whether entering DFU mode has been requested.
+/// @return true if a DFU request is pending, otherwise false.
 bool app_loader_is_dfu_requested(void);
 
+/// @brief Performs the device firmware update procedure.
+/// @return true if the update succeeds, otherwise false.
 bool app_loader_peform_dfu(void);
 
+/// @brief Stops bootloader activity and transfers execution to the application.
+/// @note A valid application image and vector table must be present at APP_START.
+///       This function is not expected to return after a successful jump.
 void app_loader_jump_to_app(void);
 
 //------------------------------------------------------------------------------
