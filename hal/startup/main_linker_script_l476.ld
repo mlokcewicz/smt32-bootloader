@@ -19,7 +19,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM (xrw)		: ORIGIN = 0x20000000, LENGTH = 96K
+  RAM_EXCHANGE(rw) : ORIGIN = RAM_EXCHANGE_START, LENGTH = RAM_EXCHANGE_SIZE
+  RAM (xrw)		: ORIGIN = RAM_EXCHANGE_START + RAM_EXCHANGE_SIZE, LENGTH = RAM_SIZE - RAM_EXCHANGE_SIZE
   ROM (rx)		: ORIGIN = APP_START, LENGTH = APP_SIZE
 }
 
@@ -103,6 +104,20 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
+  .data_exchange_ram (NOLOAD) :
+  {
+      . = ALIGN(8);
+      __data_exchange_start__ = .;
+      KEEP(*(.data_exchange_section_ram))
+      . = ALIGN(8);
+      __data_exchange_end__ = .;
+  } > RAM_EXCHANGE
+
+  ASSERT(
+      SIZEOF(.data_exchange_ram) <= LENGTH(RAM_EXCHANGE),
+      "data_exchange RAM overflow"
+  )
+
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
@@ -145,8 +160,6 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
-
-  
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

@@ -14,6 +14,8 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include <data_exchange.h>
+
 //------------------------------------------------------------------------------
 
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
@@ -133,6 +135,14 @@ static void led_task(void *pvParameters)
 {
     printf("MAIN APP started...\n");
 
+    struct data_exchange_data *data = data_exchange_get_data();
+    
+    printf("Boot version: %s\n", data->boot_ver);
+
+    data_exchange_set_app_ver("v0.0.2");
+
+    bool dfu_req = false;
+
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
     while(!(RCC->AHB2ENR & RCC_AHB2ENR_GPIOAEN));
 
@@ -150,6 +160,15 @@ static void led_task(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(1000));
         GPIOA->BRR = 1 << 5;
         vTaskDelay(pdMS_TO_TICKS(1000));
+
+        if (button_is_pressed())
+        {
+            data_exchange_set_dfu_entry_req(dfu_req);
+
+            printf("DFU request: %d\n", dfu_req);
+
+            dfu_req ^= true;
+        }
     }
 }
 
@@ -169,7 +188,7 @@ int main()
 
     uart_init();
 
-    xTaskCreate(led_task, "LED", 100, NULL, 1, NULL);
+    xTaskCreate(led_task, "LED", 512, NULL, 1, NULL);
     xTaskCreate(stats_task, "STATS", 300, NULL, 1, NULL);
 
     vTaskStartScheduler();

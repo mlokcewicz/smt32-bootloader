@@ -17,6 +17,8 @@
 #include <usart.h>
 #include <gpio.h>
 
+#include <button.h>
+
 //------------------------------------------------------------------------------
 
 #define B1_Pin GPIO_PIN_13
