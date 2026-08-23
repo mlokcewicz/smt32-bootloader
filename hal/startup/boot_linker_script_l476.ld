@@ -5,6 +5,8 @@
  *      Author: mlokc
  */
 
+INCLUDE memory_layout.ldh
+
 /* Entry Point */
 ENTRY(Reset_Handler)
 
@@ -18,7 +20,7 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM (xrw)		: ORIGIN = 0x20000000, LENGTH = 96K
-  ROM (rx)		: ORIGIN = 0x8000000, LENGTH = 32K
+  ROM (rx)		: ORIGIN = BOOT_START, LENGTH = BOOT_SIZE
 }
 
 /* Sections */

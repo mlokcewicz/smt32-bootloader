@@ -14,7 +14,10 @@ target_link_libraries(boot_${CMAKE_PROJECT_NAME}.elf
     platform
 )
 
-target_link_options(boot_${CMAKE_PROJECT_NAME}.elf PRIVATE -T${PROJECT_SOURCE_DIR}/hal/startup/boot_linker_script_l476.ld)
+target_link_options(boot_${CMAKE_PROJECT_NAME}.elf PRIVATE 
+    -T${PROJECT_SOURCE_DIR}/hal/startup/boot_linker_script_l476.ld
+    -L${PROJECT_SOURCE_DIR}/hal/startup
+)
 
 # custom targets
 add_custom_target(size ALL DEPENDS boot_${CMAKE_PROJECT_NAME}.elf COMMAND ${SIZE} -B boot_${CMAKE_PROJECT_NAME}.elf)

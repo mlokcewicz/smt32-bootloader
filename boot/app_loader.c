@@ -11,6 +11,14 @@
 
 //------------------------------------------------------------------------------
 
+extern const uint8_t __app_start__;
+extern const uint8_t __app_size__;
+
+static uintptr_t app_start = (uintptr_t)&__app_start__;
+static uintptr_t app_size = (uintptr_t)&__app_size__;
+
+//------------------------------------------------------------------------------
+
 typedef void(*reset_handler_t)(void);
 
 bool app_loader_init(void)
@@ -36,15 +44,20 @@ void app_loader_jump_to_app(void)
     SysTick->LOAD = 0;
     SysTick->VAL = 0;
 
-    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(0x8008000 + 4));
+    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(app_start + 4));
+    
     SCB->VTOR = (0x8008000);
     __DSB();
     __ISB();
+
     __set_CONTROL(0);
     __ISB();
-    __set_MSP(*(uint32_t *)0x8008000);
 
-    (reset_handler_func)();
+    __set_MSP(*(uint32_t *)app_start);
+
+    reset_handler_func();
+
+    (void)app_size;
 }
 
 //------------------------------------------------------------------------------
