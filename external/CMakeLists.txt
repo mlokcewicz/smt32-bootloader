@@ -30,3 +30,12 @@ target_sources(freertos_kernel PRIVATE ${FREERTOS_KERNEL_SRC})
 
 set_target_properties(freertos_kernel PROPERTIES EXCLUDE_FROM_ALL True)
 
+# stm32l4hal kernel target
+add_library(stm32l4xx_hal_driver STATIC)
+
+target_include_directories(stm32l4xx_hal_driver PUBLIC stm32l4xx_hal_driver/Inc)
+
+aux_source_directory(stm32l4xx_hal_driver/Src STM32L4XX_HAL_DRIVER_SRC)
+target_sources(stm32l4xx_hal_driver PRIVATE ${STM32L4XX_HAL_DRIVER_SRC})
+
+target_link_libraries(stm32l4xx_hal_driver cmsis_device_l4)

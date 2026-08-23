@@ -9,6 +9,8 @@
 
 #include <stm32l4xx.h>
 
+#include <stm32l4xx_hal.h>
+
 #include <FreeRTOS.h>
 #include <task.h>
 
@@ -68,7 +70,7 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
 
 void vApplicationTickHook(void)
 {
-    // HAL_IncTick();
+    HAL_IncTick();
 }
 
 void vApplicationMallocFailedHook(void)
@@ -158,6 +160,8 @@ int main()
     /* SYSCLK = 4 MHz, source: MSI, AHB presc = /1 → HCLK = 4 MHz APB1/APB2 presc = /1 → PCLK1 = PCLK2 = 4 MHz */
     SystemInit();
     SystemCoreClockUpdate();
+
+    HAL_Init();
 
     xTaskCreate(led_task, "LED", 100, NULL, 1, NULL);
     xTaskCreate(stats_task, "STATS", 300, NULL, 1, NULL);

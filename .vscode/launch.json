@@ -18,7 +18,7 @@
                 "enabled": true,
                 "samplesPerSecond": 4
             },
-            // "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
+            "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
         },
         {
             "name": "debug jlink",
@@ -33,7 +33,7 @@
                 "enabled": true,
                 "samplesPerSecond": 4
             },
-            // "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
+            "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
         },
         {
             "name": "debug boot jlink",
@@ -48,7 +48,7 @@
                 "enabled": true,
                 "samplesPerSecond": 4
             },
-            // "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
+            "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
         },
         {
             "name": "debug MS openocd",

@@ -9,6 +9,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}.elf
     cmsis_device_l4 
     cmsis_5 
     freertos_kernel 
+    stm32l4xx_hal_driver
     utils 
     platform
 )

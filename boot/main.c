@@ -9,6 +9,8 @@
 
 #include <stm32l4xx.h>
 
+#include <stm32l4xx_hal.h>
+
 #include <FreeRTOS.h>
 #include <task.h>
 
@@ -68,7 +70,7 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
 
 void vApplicationTickHook(void)
 {
-    // HAL_IncTick();
+    HAL_IncTick();
 }
 
 void vApplicationMallocFailedHook(void)
@@ -106,26 +108,7 @@ uint32_t rts_get_time_counter_value(void)
 
 //------------------------------------------------------------------------------
 
-static void stats_task(void *pvParameters)
-{
-    uint8_t tasks_quantity = uxTaskGetNumberOfTasks();
-    char buf[40 * tasks_quantity]; /* 40 bytes per task */
-    HeapStats_t heap_stats;
-    TaskStatus_t tasks_info[tasks_quantity];
-    uint32_t total_run_time = 0;
-
-    while (1)
-    {
-        vTaskGetRunTimeStats(buf);
-        vPortGetHeapStats(&heap_stats);
-        
-        uxTaskGetSystemState(tasks_info, tasks_quantity, &total_run_time);
-
-        /* log rts, heap, stack info */
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
+typedef void(*reset_handler_t)(void);
 
 static void led_task(void *pvParameters)
 {
@@ -140,13 +123,31 @@ static void led_task(void *pvParameters)
 
     GPIOA->BSRR = (1 << 5); // set bit
 
-    while (1)
+    uint32_t blink_counts = 10;
+
+    while (blink_counts--)
     {
         GPIOA->BSRR = 1 << 5;
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
         GPIOA->BRR = 1 << 5;
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
+
+    __disable_irq();
+
+    SysTick->CTRL = 0;
+SysTick->LOAD = 0;
+SysTick->VAL = 0;
+
+    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(0x8008000 + 4));
+    SCB->VTOR = (0x8008000);
+    __DSB();
+    __ISB();
+    __set_CONTROL(0);
+    __ISB();
+    __set_MSP(*(uint32_t *)0x8008000);
+
+    (reset_handler_func)();
 }
 
 //------------------------------------------------------------------------------
@@ -159,8 +160,9 @@ int main()
     SystemInit();
     SystemCoreClockUpdate();
 
+    HAL_Init();
+
     xTaskCreate(led_task, "LED", 100, NULL, 1, NULL);
-    xTaskCreate(stats_task, "STATS", 300, NULL, 1, NULL);
 
     vTaskStartScheduler();
 

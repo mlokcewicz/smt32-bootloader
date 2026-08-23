@@ -5,6 +5,7 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
 ## Capabilities
 
 * DFU over UART
+* Application CRC check
 * RAM code execution
 * SHared memory used to exchange information with main application
    * To application:
