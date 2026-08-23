@@ -36,6 +36,21 @@
             // "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
         },
         {
+            "name": "debug boot jlink",
+            "cwd": "${workspaceFolder}/build/boot",
+            "executable": "./boot_stm32_bootloader.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "jlink",
+            "device": "STM32L476RG", // with device support pack
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            },
+            // "svdFile": "${workspaceFolder}/STM32L4x6.svd", // without device support pack
+        },
+        {
             "name": "debug MS openocd",
             "type": "cppdbg",
             "request": "launch",

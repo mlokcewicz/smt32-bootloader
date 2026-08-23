@@ -11,6 +11,7 @@ include_directories(app)
 
 # Application modules
 add_subdirectory(app)
+add_subdirectory(boot)
 add_subdirectory(middlewares)
 add_subdirectory(external)
 add_subdirectory(hal)
