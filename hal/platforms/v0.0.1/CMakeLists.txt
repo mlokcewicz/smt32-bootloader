@@ -10,4 +10,5 @@ target_link_libraries(platform
     startup
     drivers
     ext_drivers
+    stm32l4xx_hal_driver
 )

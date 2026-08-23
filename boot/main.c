@@ -9,7 +9,9 @@
 
 #include <stm32l4xx.h>
 
-#include <stm32l4xx_hal.h>
+#include <hal.h>
+
+#include <app_loader.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -108,9 +110,7 @@ uint32_t rts_get_time_counter_value(void)
 
 //------------------------------------------------------------------------------
 
-typedef void(*reset_handler_t)(void);
-
-static void led_task(void *pvParameters)
+static void dfu_task(void *pvParameters)
 {
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
     while(!(RCC->AHB2ENR & RCC_AHB2ENR_GPIOAEN));
@@ -131,24 +131,20 @@ static void led_task(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(100));
         GPIOA->BRR = 1 << 5;
         vTaskDelay(pdMS_TO_TICKS(100));
+        
+        if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)
+        {
+            printf("DUpa\n");
+            
+            while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET){};
+        }
     }
 
-    __disable_irq();
+    app_loader_jump_to_app();
 
-    SysTick->CTRL = 0;
-SysTick->LOAD = 0;
-SysTick->VAL = 0;
-
-    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(0x8008000 + 4));
-    SCB->VTOR = (0x8008000);
-    __DSB();
-    __ISB();
-    __set_CONTROL(0);
-    __ISB();
-    __set_MSP(*(uint32_t *)0x8008000);
-
-    (reset_handler_func)();
+    while(1) {};
 }
+
 
 //------------------------------------------------------------------------------
 
@@ -162,7 +158,14 @@ int main()
 
     HAL_Init();
 
-    xTaskCreate(led_task, "LED", 100, NULL, 1, NULL);
+    SystemClock_Config();
+
+    gpio_init();
+    dma_init();
+    uart_init();
+    // iwdg_init();
+
+    xTaskCreate(dfu_task, "DFU", 512, NULL, 1, NULL);
 
     vTaskStartScheduler();
 
