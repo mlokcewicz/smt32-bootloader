@@ -6,11 +6,10 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
 
 * DFU over UART
 * Application CRC check
-* RAM code execution
+* RAM code execution to allow self-upgrade
 * SHared memory used to exchange information with main application
    * To application:
       * Bootloader version
-      * Last DFU status
    * To bootloader:
       * Application version
       * Application CRC
