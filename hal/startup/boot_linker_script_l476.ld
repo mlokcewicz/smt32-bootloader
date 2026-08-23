@@ -35,10 +35,20 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
+  .boot_startup :
+  {
+      . = ALIGN(4);
+      KEEP(*(.boot_startup))
+      . = ALIGN(4);
+  } > ROM
+
   /* The program code and other data into ROM memory */
-  .text :
+  .ram_code :
   {
     . = ALIGN(4);
+    __ram_code_start__ = .;
+    _ram_code_start = .;
+
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
     *(.glue_7)         /* glue arm to thumb code */
@@ -50,7 +60,11 @@ SECTIONS
 
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
-  } >ROM
+    __ram_code_end__ = .;
+    _ram_code_end = .;
+  } >RAM AT> ROM
+
+  _ram_code_load = LOADADDR(.ram_code);
 
   /* Constant data into ROM memory*/
   .rodata :

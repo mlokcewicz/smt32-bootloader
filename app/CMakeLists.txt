@@ -14,6 +14,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME}.elf
     platform
 )
 
+target_sources(${CMAKE_PROJECT_NAME}.elf PRIVATE
+    ${PROJECT_SOURCE_DIR}/hal/startup/startup_l476.c
+)
+
 target_link_options(${CMAKE_PROJECT_NAME}.elf PRIVATE 
     -T${PROJECT_SOURCE_DIR}/hal/startup/main_linker_script_l476.ld
     -L${PROJECT_SOURCE_DIR}/hal/startup
