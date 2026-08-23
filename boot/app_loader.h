@@ -28,7 +28,11 @@ bool app_loader_is_dfu_requested(void);
 
 /// @brief Performs the device firmware update procedure.
 /// @return true if the update succeeds, otherwise false.
-bool app_loader_peform_dfu(void);
+bool app_loader_perform_dfu(void);
+
+/// @brief Checks application CRC
+/// @return true if application is valid, otherwise false. 
+bool app_loader_app_is_valid(void);
 
 /// @brief Stops bootloader activity and transfers execution to the application.
 /// @note A valid application image and vector table must be present at APP_START.

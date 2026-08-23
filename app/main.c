@@ -18,6 +18,10 @@
 
 //------------------------------------------------------------------------------
 
+#define DEFAULT_MAIN_VERSION "v3.3.1"
+
+//------------------------------------------------------------------------------
+
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
 implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
 used by the Idle task. */
@@ -133,13 +137,17 @@ static void stats_task(void *pvParameters)
 
 static void led_task(void *pvParameters)
 {
+    gpio_init();
+    iwdg_init();
+    uart_init();
+
     printf("MAIN APP started...\n");
 
     struct data_exchange_data *data = data_exchange_get_data();
     
     printf("Boot version: %s\n", data->boot_ver);
 
-    data_exchange_set_app_ver("v0.0.2");
+    data_exchange_set_app_ver(DEFAULT_MAIN_VERSION);
 
     bool dfu_req = false;
 
@@ -147,6 +155,7 @@ static void led_task(void *pvParameters)
 
     while (1)
     {
+        iwdg_feed();
         led_toggle();
         vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -174,9 +183,6 @@ int main()
     HAL_Init();
 
     SystemClock_Config();
-
-    gpio_init();
-    uart_init();
 
     xTaskCreate(led_task, "LED", 512, NULL, 1, NULL);
     xTaskCreate(stats_task, "STATS", 300, NULL, 1, NULL);

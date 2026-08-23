@@ -12,7 +12,6 @@
 #include <hal.h>
 
 #include <app_loader.h>
-#include <data_exchange.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -78,7 +77,6 @@ void vApplicationTickHook(void)
 
 void vApplicationMallocFailedHook(void)
 {
-    
 }
 
 void vApplicationIdleHook(void)
@@ -86,22 +84,18 @@ void vApplicationIdleHook(void)
     __WFI();
 }
 
-
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
-
 }
 
 void vAssertCalled(const char *pcFile, unsigned long ulLine)
 {
-
 }
 
 //------------------------------------------------------------------------------
 
 void rts_timer_configure(void)
 {
-
 }
 
 uint32_t rts_get_time_counter_value(void)
@@ -113,26 +107,32 @@ uint32_t rts_get_time_counter_value(void)
 
 static void dfu_task(void *pvParameters)
 {
-    printf("BOOT started...\n");
-
-    uint32_t blink_counts = 20;
-    struct data_exchange_data *data = data_exchange_get_data();
-
-    printf("APP version: %s, dfu request: %d\n", data->app_ver, data->dfu_entry_req);
+    gpio_init();
+    dma_init();
+    uart_init();
+    iwdg_init();
     
-    data_exchange_set_boot_ver("v0.1.3");
+    printf("BOOT started...\n");
+    
+    app_loader_init();
 
-    while (blink_counts--)
+    /* Try to peform DFU indefinitely on error */
+    while (1)
     {
+        bool app_is_valid = app_loader_app_is_valid();
+
+        if (!app_is_valid || app_loader_is_dfu_requested())
+            app_is_valid = app_loader_perform_dfu() && app_loader_app_is_valid();
+
+        if (app_is_valid)
+            app_loader_jump_to_app();
+
         led_toggle();
-        HAL_Delay(150);
+        iwdg_feed();
+
+        vTaskDelay(100);
     }
-
-    app_loader_jump_to_app();
-
-    while(1) {};
 }
-
 
 //------------------------------------------------------------------------------
 
@@ -147,11 +147,6 @@ int main()
     HAL_Init();
 
     SystemClock_Config();
-
-    gpio_init();
-    dma_init();
-    uart_init();
-    iwdg_init();
 
     xTaskCreate(dfu_task, "DFU", 512, NULL, 1, NULL);
 
