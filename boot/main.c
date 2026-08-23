@@ -163,14 +163,3 @@ int main()
 }
 
 //------------------------------------------------------------------------------
-
-/*
-
-- common section (dfu req, app version, boot version, crc)
-- dfu req on button
-- ramexe
-- CRC handling befora start
-- UART handling - transport
-- FLASH handling
-
-*/
