@@ -112,29 +112,16 @@ uint32_t rts_get_time_counter_value(void)
 
 static void dfu_task(void *pvParameters)
 {
-    RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-    while(!(RCC->AHB2ENR & RCC_AHB2ENR_GPIOAEN));
-
-    GPIOA->MODER &= ~GPIO_MODER_MODE5;  // clear mode register for GPIOA pin 5
-    GPIOA->MODER |= GPIO_MODER_MODE5_0; // set mode register general puprpose output
-
-    GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_5);    // set output type  to push-pull
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPD5_Msk); // disable pull-up and pull-down
-
-    GPIOA->BSRR = (1 << 5); // set bit
-
-    uint32_t blink_counts = 10;
+    uint32_t blink_counts = 20;
 
     while (blink_counts--)
     {
-        GPIOA->BSRR = 1 << 5;
-        vTaskDelay(pdMS_TO_TICKS(100));
-        GPIOA->BRR = 1 << 5;
-        vTaskDelay(pdMS_TO_TICKS(100));
+        HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+        HAL_Delay(150);
         
         if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)
         {
-            printf("DUpa\n");
+            printf("TEST\n");
             
             while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET){};
         }
