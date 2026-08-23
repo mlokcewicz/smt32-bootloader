@@ -9,7 +9,7 @@
 
 #include <stm32l4xx.h>
 
-#include <stm32l4xx_hal.h>
+#include <hal.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -131,6 +131,8 @@ static void stats_task(void *pvParameters)
 
 static void led_task(void *pvParameters)
 {
+    printf("MAIN APP started...\n");
+
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
     while(!(RCC->AHB2ENR & RCC_AHB2ENR_GPIOAEN));
 
@@ -162,6 +164,10 @@ int main()
     SystemCoreClockUpdate();
 
     HAL_Init();
+
+    SystemClock_Config();
+
+    uart_init();
 
     xTaskCreate(led_task, "LED", 100, NULL, 1, NULL);
     xTaskCreate(stats_task, "STATS", 300, NULL, 1, NULL);

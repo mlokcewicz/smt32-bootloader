@@ -112,6 +112,8 @@ uint32_t rts_get_time_counter_value(void)
 
 static void dfu_task(void *pvParameters)
 {
+    printf("BOOT started...\n");
+
     uint32_t blink_counts = 20;
 
     while (blink_counts--)
