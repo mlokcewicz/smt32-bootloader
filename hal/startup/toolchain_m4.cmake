@@ -72,7 +72,8 @@ set(LINKER_FLAGS
     LINKER:--gc-sections 
     LINKER:-Map=map_file.map 
     LINKER:--print-memory-usage
-    -T${CMAKE_CURRENT_LIST_DIR}/linker_script_l476.ld) 
+    # -T${CMAKE_CURRENT_LIST_DIR}/linker_script_l476.ld
+    ) 
 
 set(DEBUG_FLAGS
     -O0
