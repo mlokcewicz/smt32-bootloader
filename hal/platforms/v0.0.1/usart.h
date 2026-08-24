@@ -27,6 +27,11 @@ extern UART_HandleTypeDef huart2;
 /// @brief Initializes UART
 void uart_init(void);
 
+/// @brief Starts UART async reception to given buffer
+/// @param buf - buffer pointer
+/// @param len - buffer length in bytes
+void uart_start_rx(uint8_t *buf, uint32_t len);
+
 //------------------------------------------------------------------------------
 
 #ifdef __cplusplus

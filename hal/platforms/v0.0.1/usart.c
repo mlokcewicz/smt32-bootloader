@@ -22,6 +22,23 @@ int __io_putchar(int ch)
 
 //------------------------------------------------------------------------------
 
+__weak void uart_rx_cplt_cb(void)
+{
+  
+}
+
+__weak void uart_rx_half_cplt_cb(void)
+{
+
+}
+
+__weak void uart_rx_err_cb(void)
+{
+
+}
+
+//------------------------------------------------------------------------------
+
 void uart_init(void)
 {
   huart2.Instance = USART2;
@@ -38,6 +55,11 @@ void uart_init(void)
   {
     Error_Handler();
   }
+}
+
+void uart_start_rx(uint8_t *buf, uint32_t len)
+{
+  HAL_UART_Receive_DMA(&huart2, buf, len);
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
@@ -80,7 +102,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
     hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_rx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_rx.Init.Mode = DMA_CIRCULAR;
     hdma_usart2_rx.Init.Priority = DMA_PRIORITY_LOW;
     if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
     {
@@ -107,6 +129,29 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle)
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
   }
+}
+
+void DMA1_Channel6_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if (huart == &huart2)
+    uart_rx_cplt_cb();
+}
+
+void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+  if (huart == &huart2)
+    uart_rx_half_cplt_cb();
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+  if (huart == &huart2)
+    uart_rx_err_cb();
 }
 
 //------------------------------------------------------------------------------
