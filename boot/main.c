@@ -111,7 +111,7 @@ static void dfu_task(void *pvParameters)
     dma_init();
     uart_init();
     iwdg_init();
-    
+
     printf("BOOT started...\n");
     
     app_loader_init();
