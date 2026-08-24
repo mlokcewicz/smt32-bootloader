@@ -12,10 +12,11 @@
 
 #include "stm32l4xx_hal.h"
 
-#include <dma.h>
-#include <iwdg.h>
-#include <usart.h>
 #include <gpio.h>
+#include <iwdg.h>
+#include <dma.h>
+#include <usart.h>
+#include <flash.h>
 
 #include <button.h>
 #include <led.h>
