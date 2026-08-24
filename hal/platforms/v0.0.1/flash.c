@@ -70,7 +70,7 @@ __weak void flash_dword_program_cb(void)
 
 bool flash_erase(uint32_t start_addr, uint32_t size)
 {
-    uint32_t end_addr = start_addr + size;
+    uint32_t end_addr = start_addr + size - 1;
     uint32_t PAGEError = 0;
 
     HAL_FLASH_Unlock();
