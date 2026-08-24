@@ -37,6 +37,11 @@ __weak void uart_rx_err_cb(void)
 
 }
 
+__weak void uart_rx_idle_cb(uint16_t bytes)
+{
+
+}
+
 //------------------------------------------------------------------------------
 
 void uart_init(void)
@@ -59,7 +64,7 @@ void uart_init(void)
 
 void uart_start_rx(uint8_t *buf, uint32_t len)
 {
-  HAL_UART_Receive_DMA(&huart2, buf, len);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, buf, len);
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
@@ -134,6 +139,12 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle)
 void DMA1_Channel6_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  if (huart == &huart2)
+    uart_rx_idle_cb(Size);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
