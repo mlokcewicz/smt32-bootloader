@@ -4,7 +4,7 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
 
 ## Capabilities
 
-* DFU over UART
+* DFU over UART (based on DMA in circular mode)
 * Application CRC check
 * RAM code execution to allow self-upgrade
 * SHared memory used to exchange information with main application
@@ -14,6 +14,11 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
       * Application version
       * Application CRC
       * Bootloader entry request
+
+## DFU process
+
+* UART prameters: `115200 baud`, `8N1`, no flow control, `MCU TX` - **PA2**, `MCU RX` - **PA3**
+* Communication protocol: 
 
 ## Tools
 
