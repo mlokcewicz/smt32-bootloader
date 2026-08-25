@@ -115,6 +115,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
     }
 
     __HAL_LINKDMA(uartHandle, hdmarx, hdma_usart2_rx);
+
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 10, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
   }
 }
 
@@ -133,12 +137,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle)
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
-  }
-}
 
-void DMA1_Channel6_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
+  }
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
@@ -163,6 +164,18 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   if (huart == &huart2)
     uart_rx_err_cb();
+}
+
+//------------------------------------------------------------------------------
+
+void USART2_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart2);
+}
+
+void DMA1_Channel6_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
 }
 
 //------------------------------------------------------------------------------
