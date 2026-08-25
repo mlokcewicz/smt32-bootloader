@@ -204,6 +204,9 @@ bool app_loader_app_is_valid(void)
 
 void app_loader_jump_to_app(void)
 {
+    uart_deinit();
+    dma_deinit();
+
     __disable_irq();
 
     SysTick->CTRL = 0;
@@ -212,7 +215,7 @@ void app_loader_jump_to_app(void)
 
     reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(app_start + 4));
     
-    SCB->VTOR = (0x8008000);
+    SCB->VTOR = app_start;
     __DSB();
     __ISB();
 
@@ -220,6 +223,8 @@ void app_loader_jump_to_app(void)
     __ISB();
 
     __set_MSP(*(uint32_t *)app_start);
+
+    __enable_irq();
 
     reset_handler_func();
 }

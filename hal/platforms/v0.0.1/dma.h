@@ -21,6 +21,9 @@ extern "C" {
 /// @brief Inits all DMA channels
 void dma_init(void);
 
+/// @brief Deinitializes all DMA channels
+void dma_deinit(void);
+
 //------------------------------------------------------------------------------
 
 #ifdef __cplusplus

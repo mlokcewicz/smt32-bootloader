@@ -67,6 +67,13 @@ void uart_start_rx(uint8_t *buf, uint32_t len)
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, buf, len);
 }
 
+void uart_deinit(void)
+{
+  HAL_UART_DMAStop(&huart2);
+
+  HAL_UART_DeInit(&huart2);
+}
+
 void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle)
 {
 

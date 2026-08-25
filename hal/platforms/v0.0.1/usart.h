@@ -32,6 +32,9 @@ void uart_init(void);
 /// @param len - buffer length in bytes
 void uart_start_rx(uint8_t *buf, uint32_t len);
 
+/// @biref Deinitializes UART
+void uart_deinit(void);
+
 //------------------------------------------------------------------------------
 
 #ifdef __cplusplus

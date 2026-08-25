@@ -22,4 +22,12 @@ void dma_init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 }
 
+void dma_deinit(void)
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_DISABLE();
+
+  HAL_NVIC_DisableIRQ(DMA1_Channel6_IRQn);
+}
+
 //------------------------------------------------------------------------------
