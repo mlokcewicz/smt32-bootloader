@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include <stm32l4xx.h>
 
 #include <hal.h>
@@ -38,7 +41,9 @@ __aligned(sizeof(uint64_t)) static uint8_t app_loader_buf[DFU_BUFFER_SIZE];
 static volatile uint32_t buf_tail;
 static volatile uint32_t buf_head;
 
-static uint32_t last_rx_tick;
+static volatile uint32_t last_rx_tick;
+
+static TaskHandle_t dfu_task_handle;
 
 //------------------------------------------------------------------------------
 
@@ -48,13 +53,44 @@ typedef void(*reset_handler_t)(void);
 
 static bool get_dfu_timeout_elapsed(void)
 {
-    if ((HAL_GetTick() - last_rx_tick) > DFU_TIMEOUT_MS)
+    if ((xTaskGetTickCount() - last_rx_tick) > DFU_TIMEOUT_MS)
     {
         printf("DFU receive timeout\n");
         return true;
     }
 
     return false;
+}
+
+//------------------------------------------------------------------------------
+
+void uart_rx_idle_cb(uint16_t size)
+{
+    buf_head = size;
+    buf_head %= DFU_BUFFER_SIZE;
+
+    last_rx_tick = xTaskGetTickCount();
+
+    BaseType_t higher_priority_task_woken = pdFALSE;
+
+    if (dfu_task_handle != NULL)
+    {
+        vTaskNotifyGiveFromISR(dfu_task_handle,&higher_priority_task_woken);
+
+        portYIELD_FROM_ISR(higher_priority_task_woken);
+    }
+
+}
+
+void uart_rx_err_cb(void)
+{
+
+}
+
+void flash_dword_program_cb(void)
+{
+    iwdg_feed();
+    led_toggle();
 }
 
 //------------------------------------------------------------------------------
@@ -81,25 +117,6 @@ bool app_loader_is_dfu_requested(void)
     return requested;
 }
 
-void uart_rx_idle_cb(uint16_t size)
-{
-    buf_head = size;
-    buf_head %= DFU_BUFFER_SIZE;
-
-    last_rx_tick = HAL_GetTick();
-}
-
-void uart_rx_err_cb(void)
-{
-
-}
-
-void flash_dword_program_cb(void)
-{
-    iwdg_feed();
-    led_toggle();
-}
-
 bool app_loader_perform_dfu(void)
 {
 
@@ -111,10 +128,10 @@ bool app_loader_perform_dfu(void)
 
     buf_head = 0;
     buf_tail = 0;
-    last_rx_tick = HAL_GetTick();
+    last_rx_tick = xTaskGetTickCount();
+    dfu_task_handle = xTaskGetCurrentTaskHandle();
 
-    uart_start_rx(app_loader_buf, sizeof(app_loader_buf));
-
+    uart_start_rx(app_loader_buf, DFU_BUFFER_SIZE);
 
     iwdg_feed();
 
@@ -154,12 +171,16 @@ bool app_loader_perform_dfu(void)
 
             curr_flash_address += dwords_to_write * sizeof(uint64_t);
             buf_tail = (buf_tail + dwords_to_write * sizeof(uint64_t)) % DFU_BUFFER_SIZE;
+
+            continue;
         }
 
         iwdg_feed();
 
         if (get_dfu_timeout_elapsed())
             return false;
+
+        ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(100));
     }
 
     iwdg_feed();
