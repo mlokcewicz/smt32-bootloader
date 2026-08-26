@@ -36,6 +36,8 @@ extern const uint8_t __app_size__;
 static uintptr_t app_start = (uintptr_t)&__app_start__;
 static uintptr_t app_size = (uintptr_t)&__app_size__;
 
+__attribute__((section(".app_header"))) const volatile struct app_loader_image_header app_header;
+
 __aligned(sizeof(uint64_t)) static uint8_t app_loader_buf[DFU_BUFFER_SIZE];
 
 static volatile uint32_t buf_tail;

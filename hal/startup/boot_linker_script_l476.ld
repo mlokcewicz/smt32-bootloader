@@ -16,12 +16,16 @@ _estack = 0x20018000;    /* end of RAM */
 _Min_Heap_Size = 0;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
+ASSERT((ORIGIN(APP_HEADER_ROM) % FLASH_PAGE_SIZE) == 0,
+       "APP header start is not flash-page aligned");
+
 /* Memories definition */
 MEMORY
 {
   RAM_EXCHANGE(rw) : ORIGIN = RAM_EXCHANGE_START, LENGTH = RAM_EXCHANGE_SIZE
   RAM (xrw)		: ORIGIN = RAM_EXCHANGE_START + RAM_EXCHANGE_SIZE, LENGTH = RAM_SIZE - RAM_EXCHANGE_SIZE
   ROM (rx)		: ORIGIN = BOOT_START, LENGTH = BOOT_SIZE
+  APP_HEADER_ROM (rw) : ORIGIN = BOOT_START + BOOT_SIZE, LENGTH = APP_HEADER_SIZE
 }
 
 /* Sections */
@@ -152,6 +156,10 @@ SECTIONS
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> ROM
 
+  .app_header (NOLOAD) :
+  {
+    *(.app_header)
+  } > APP_HEADER_ROM
   
   /* Uninitialized data section into RAM memory */
   . = ALIGN(4);
