@@ -18,7 +18,24 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
 ## DFU process
 
 * UART prameters: `115200 baud`, `8N1`, no flow control, `MCU TX` - **PA2**, `MCU RX` - **PA3**
-* Communication protocol: 
+* Image byte order: little-endian
+
+The host first sends the 16-byte image header. The bootloader validates the header, erases the target Flash area and responds with `READY\n`. After receiving `READY`, the host sends exactly `app_size` payload bytes. This handshake prevents the circular DMA buffer from overflowing while Flash is being erased.
+
+### Image header
+
+| Offset | Size | Field | Description |
+|---:|---:|---|---|
+| `0x00` | 4 B | `magic` | Image marker, currently `0xDEADBEEF` |
+| `0x04` | 4 B | `app_type` | Target image: `0` = bootloader, `1` = main application |
+| `0x08` | 4 B | `app_size` | Payload size in bytes, excluding the header |
+| `0x0C` | 4 B | `app_crc` | CRC-32 calculated over the payload |
+
+The complete update image has the following layout:
+
+```text
+[16-byte header][app_size bytes of payload]
+```
 
 ## Tools
 
