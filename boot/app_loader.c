@@ -95,7 +95,7 @@ static bool validate_app_header(const volatile struct app_loader_image_header *h
         return false;
     }
 
-    printf("APP HEADED OK. App type: %ld, size: %ld\n", header->app_type, header->app_size);
+    printf("APP HEADER OK. App type: %ld, size: %ld\n", header->app_type, header->app_size);
 
     return true;
 }
@@ -156,7 +156,7 @@ bool app_loader_init(void)
 {
     struct data_exchange_data *data = data_exchange_get_data();
     
-    printf("APP version: %s, DFU request: %d\n", data->app_ver, data->dfu_entry_req);
+    printf("APP version: %s, DFU request: %d\n", app_header.app_version, data->dfu_entry_req);
 
     data_exchange_set_boot_ver(DEFAULT_BOOT_VERSION);
 
@@ -231,6 +231,8 @@ bool app_loader_perform_dfu(void)
 
             if (!validate_app_header((void*)app_header_buf))
                 return false;
+
+            /* Optionally - check application version */
 
             received_app_size = header->app_size;
             curr_flash_address = apps[header->app_type].addr;

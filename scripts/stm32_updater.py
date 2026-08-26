@@ -8,7 +8,7 @@ import serial
 COM_PORT = "COM5"
 BAUD_RATE = 115200
 BIN_FILE = Path(__file__).resolve().parent.parent / "build" / "app" / "stm32_bootloader_image.bin"
-HEADER_SIZE = 16
+HEADER_SIZE = 32
 READY_TIMEOUT_SECONDS = 10.0
 
 

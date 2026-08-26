@@ -39,6 +39,7 @@ struct app_loader_image_header
     uint32_t app_type;
     uint32_t app_size;
     uint32_t app_crc;
+    char app_version[16];
 } __packed;
 
 //------------------------------------------------------------------------------

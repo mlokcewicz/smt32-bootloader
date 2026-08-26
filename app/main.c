@@ -18,10 +18,6 @@
 
 //------------------------------------------------------------------------------
 
-#define DEFAULT_MAIN_VERSION "v3.3.1"
-
-//------------------------------------------------------------------------------
-
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
 implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
 used by the Idle task. */
@@ -146,8 +142,6 @@ static void led_task(void *pvParameters)
     struct data_exchange_data *data = data_exchange_get_data();
     
     printf("Boot version: %s\n", data->boot_ver);
-
-    data_exchange_set_app_ver(DEFAULT_MAIN_VERSION);
 
     bool dfu_req = false;
 
