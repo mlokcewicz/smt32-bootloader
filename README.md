@@ -12,7 +12,6 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
       * Bootloader version
    * To bootloader:
       * Application version
-      * Application CRC
       * Bootloader entry request
 
 ## DFU process
