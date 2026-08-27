@@ -15,19 +15,11 @@ extern "C" {
 //------------------------------------------------------------------------------
 
 #include <stdbool.h>
+#include <stdint.h>
 
 //------------------------------------------------------------------------------
 
 #define DATA_EXCHNGE_BOOT_VER_LEN 32
-#define DATA_EXCHNGE_APP_VER_LEN 32
-
-//------------------------------------------------------------------------------
-
-struct data_exchange_data
-{
-    char boot_ver[DATA_EXCHNGE_BOOT_VER_LEN];
-    bool dfu_entry_req;
-};
 
 //------------------------------------------------------------------------------
 
@@ -39,11 +31,13 @@ void data_exchange_set_boot_ver(const char *boot_ver);
 /// @param dfu_entry_req Set to true to request DFU mode, or false to clear the request.
 void data_exchange_set_dfu_entry_req(bool dfu_entry_req);
 
-/// @brief Returns the data shared between the bootloader and the application.
-/// @return Pointer to the data exchange structure located in the shared NOLOAD RAM area.
-/// @note The returned memory is not initialized by startup code and may retain its
-///       contents across a software reset.
-struct data_exchange_data *data_exchange_get_data(void);
+/// @brief Returns the bootloader version stored in the shared data exchange area.
+/// @return Pointer to the bootloader version string, or NULL if the stored data is invalid.
+const char *data_exchange_get_boot_ver(void);
+
+/// @brief Checks whether entering DFU mode after reset has been requested.
+/// @return true if a valid DFU entry request is set, otherwise false.
+bool data_exchange_get_boot_entry_req(void);
 
 //------------------------------------------------------------------------------
 

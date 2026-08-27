@@ -139,9 +139,7 @@ static void led_task(void *pvParameters)
 
     printf("MAIN APP started...\n");
 
-    struct data_exchange_data *data = data_exchange_get_data();
-    
-    printf("Boot version: %s\n", data->boot_ver);
+    printf("Boot version: %s\n", data_exchange_get_boot_ver());
 
     bool dfu_req = false;
 

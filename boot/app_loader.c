@@ -154,9 +154,7 @@ void flash_dword_program_cb(void)
 
 bool app_loader_init(void)
 {
-    struct data_exchange_data *data = data_exchange_get_data();
-    
-    printf("APP version: %s, DFU request: %d\n", app_header.app_version, data->dfu_entry_req);
+    printf("APP version: %s, DFU request: %d\n", app_header.app_version, data_exchange_get_boot_entry_req());
 
     data_exchange_set_boot_ver(DEFAULT_BOOT_VERSION);
 
@@ -170,9 +168,7 @@ bool app_loader_init(void)
 
 bool app_loader_is_dfu_requested(void)
 {
-    struct data_exchange_data *data = data_exchange_get_data();
-
-    bool requested = button_is_pressed() || (data && data->dfu_entry_req);
+    bool requested = button_is_pressed() || (data_exchange_get_boot_entry_req());
 
     printf("DFU requested: %s\n", requested ? "true" : "false");
 
