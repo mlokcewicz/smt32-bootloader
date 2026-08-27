@@ -326,6 +326,7 @@ void app_loader_jump_to_app(void)
 {
     uart_deinit();
     dma_deinit();
+    crc_deinit();
 
     __disable_irq();
 

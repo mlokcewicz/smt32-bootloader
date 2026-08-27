@@ -17,6 +17,7 @@
 #include <dma.h>
 #include <usart.h>
 #include <flash.h>
+#include <crc.h>
 
 #include <button.h>
 #include <led.h>

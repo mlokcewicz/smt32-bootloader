@@ -107,10 +107,11 @@ uint32_t rts_get_time_counter_value(void)
 
 static void dfu_task(void *pvParameters)
 {
-    gpio_init();
-    dma_init();
-    uart_init();
     iwdg_init();
+    dma_init();
+    gpio_init();
+    uart_init();
+    crc_init();
 
     printf("BOOT started...\n");
     
