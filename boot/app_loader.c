@@ -31,37 +31,42 @@ _Static_assert (!(sizeof(struct app_loader_image_header) % sizeof(uint64_t)), "A
 
 //------------------------------------------------------------------------------
 
+extern const uint8_t __rom_size__;
+extern const uint8_t __boot_start__;
+extern const uint8_t __app_start__;
+extern const uint8_t __app_size__;
+
 struct app_obj
 {
     uint32_t addr;
     uint32_t max_size;
 };
 
+struct app_loader_obj
+{
+    uintptr_t boot_start;
+    uintptr_t rom_size; 
+    uintptr_t app_start;
+    uintptr_t max_app_size;
+
+    struct app_obj apps[APP_LOADER_APP_TYPE_MAX];
+
+    __aligned(sizeof(uint64_t)) uint8_t app_loader_buf[DFU_BUFFER_SIZE];
+    __aligned(sizeof(uint64_t)) uint64_t app_header_buf[(sizeof(struct app_loader_image_header) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
+
+    volatile uint32_t buf_tail;
+    volatile uint32_t buf_head;
+
+    volatile uint32_t last_rx_tick;
+
+    TaskHandle_t dfu_task_handle;
+};
+
 //------------------------------------------------------------------------------
 
-extern const uint8_t __rom_size__;
-extern const uint8_t __boot_start__;
-extern const uint8_t __app_start__;
-extern const uint8_t __app_size__;
-
-static uintptr_t boot_start = (uintptr_t)&__boot_start__;
-static uintptr_t rom_size = (uintptr_t)&__rom_size__;
-static uintptr_t app_start = (uintptr_t)&__app_start__;
-static uintptr_t max_app_size = (uintptr_t)&__app_size__;
-
-static struct app_obj apps[APP_LOADER_APP_TYPE_MAX];
+static struct app_loader_obj obj;
 
 __attribute__((section(".app_header"))) const volatile struct app_loader_image_header app_header;
-
-__aligned(sizeof(uint64_t)) static uint8_t app_loader_buf[DFU_BUFFER_SIZE];
-__aligned(sizeof(uint64_t)) static uint64_t app_header_buf[(sizeof(app_header) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
-
-static volatile uint32_t buf_tail;
-static volatile uint32_t buf_head;
-
-static volatile uint32_t last_rx_tick;
-
-static TaskHandle_t dfu_task_handle;
 
 //------------------------------------------------------------------------------
 
@@ -83,9 +88,9 @@ static bool validate_app_header(const volatile struct app_loader_image_header *h
         return false;
     }
     
-    if (header->app_size > apps[header->app_type].max_size)
+    if (header->app_size > obj.apps[header->app_type].max_size)
     {
-        printf("APP HEADER validation error: size (%ld) exceeded for app %ld (max: %ld)\n", header->app_size, header->app_type,  apps[header->app_type].max_size);;   
+        printf("APP HEADER validation error: size (%ld) exceeded for app %ld (max: %ld)\n", header->app_size, header->app_type,  obj.apps[header->app_type].max_size);;   
         return false;
     }
 
@@ -113,7 +118,7 @@ bool validate_app_crc(uint32_t app_start_addr, uint32_t size, uint32_t expected_
 
 static bool get_dfu_timeout_elapsed(void)
 {
-    if ((xTaskGetTickCount() - last_rx_tick) > pdMS_TO_TICKS(DFU_TIMEOUT_MS))
+    if ((xTaskGetTickCount() - obj.last_rx_tick) > pdMS_TO_TICKS(DFU_TIMEOUT_MS))
     {
         printf("DFU receive timeout\n");
         return true;
@@ -126,16 +131,16 @@ static bool get_dfu_timeout_elapsed(void)
 
 void uart_rx_idle_cb(uint16_t size)
 {
-    buf_head = size;
-    buf_head %= DFU_BUFFER_SIZE;
+    obj.buf_head = size;
+    obj.buf_head %= DFU_BUFFER_SIZE;
 
-    last_rx_tick = xTaskGetTickCountFromISR();
+    obj.last_rx_tick = xTaskGetTickCountFromISR();
 
     BaseType_t higher_priority_task_woken = pdFALSE;
 
-    if (dfu_task_handle != NULL)
+    if (obj.dfu_task_handle != NULL)
     {
-        vTaskNotifyGiveFromISR(dfu_task_handle,&higher_priority_task_woken);
+        vTaskNotifyGiveFromISR(obj.dfu_task_handle,&higher_priority_task_woken);
 
         portYIELD_FROM_ISR(higher_priority_task_woken);
     }
@@ -161,10 +166,15 @@ bool app_loader_init(void)
 
     data_exchange_set_boot_ver(DEFAULT_BOOT_VERSION);
 
-    apps[APP_LOADER_APP_TYPE_BOOT].addr = (uint32_t)boot_start;
-    apps[APP_LOADER_APP_TYPE_BOOT].max_size = rom_size;
-    apps[APP_LOADER_APP_TYPE_MAIN].addr = (uint32_t)app_start;
-    apps[APP_LOADER_APP_TYPE_MAIN].max_size = max_app_size;
+    obj.boot_start = (uintptr_t)&__boot_start__,
+    obj.rom_size = (uintptr_t)&__rom_size__,
+    obj.app_start = (uintptr_t)&__app_start__,
+    obj.max_app_size = (uintptr_t)&__app_size__,
+
+    obj.apps[APP_LOADER_APP_TYPE_BOOT].addr = (uint32_t)obj.boot_start;
+    obj.apps[APP_LOADER_APP_TYPE_BOOT].max_size = obj.rom_size;
+    obj.apps[APP_LOADER_APP_TYPE_MAIN].addr = (uint32_t)obj.app_start;
+    obj.apps[APP_LOADER_APP_TYPE_MAIN].max_size = obj.max_app_size;
     
     return true;
 }
@@ -180,21 +190,21 @@ bool app_loader_is_dfu_requested(void)
 
 bool app_loader_perform_dfu(void)
 {
-    buf_head = 0;
-    buf_tail = 0;
-    last_rx_tick = xTaskGetTickCount();
-    dfu_task_handle = xTaskGetCurrentTaskHandle();
+    obj.buf_head = 0;
+    obj.buf_tail = 0;
+    obj.last_rx_tick = xTaskGetTickCount();
+    obj.dfu_task_handle = xTaskGetCurrentTaskHandle();
 
-    uart_start_rx(app_loader_buf, DFU_BUFFER_SIZE);
+    uart_start_rx(obj.app_loader_buf, DFU_BUFFER_SIZE);
 
     iwdg_feed();
 
     /* Initial values for application */
-    uint32_t received_app_size = apps[APP_LOADER_APP_TYPE_MAIN].max_size;
-    uint32_t curr_flash_address = apps[APP_LOADER_APP_TYPE_MAIN].addr;
+    uint32_t received_app_size = obj.apps[APP_LOADER_APP_TYPE_MAIN].max_size;
+    uint32_t curr_flash_address = obj.apps[APP_LOADER_APP_TYPE_MAIN].addr;
     uint32_t end_address = curr_flash_address + received_app_size;
     uint64_t last_word_buf = 0xFFFFFFFFFFFFFFFF;
-    struct app_loader_image_header* header = (struct app_loader_image_header*)app_header_buf;
+    struct app_loader_image_header* header = (struct app_loader_image_header*)obj.app_header_buf;
     uint16_t header_bytes_received = 0;
 
     while (curr_flash_address < end_address)
@@ -206,13 +216,13 @@ bool app_loader_perform_dfu(void)
         if (get_dfu_timeout_elapsed())
             return false;
 
-        uint32_t temp_head = (buf_head >= buf_tail) ? buf_head : DFU_BUFFER_SIZE; // Prevent buffer flip
-        uint32_t bytes_to_write = temp_head - buf_tail;
+        uint32_t temp_head = (obj.buf_head >= obj.buf_tail) ? obj.buf_head : DFU_BUFFER_SIZE; // Prevent buffer flip
+        uint32_t bytes_to_write = temp_head - obj.buf_tail;
         uint32_t bytes_left = end_address - curr_flash_address;
         bytes_to_write = bytes_to_write < bytes_left ? bytes_to_write : bytes_left;
         uint32_t dwords_to_write = bytes_to_write / sizeof(uint64_t);
         uint32_t bytes_consumed = dwords_to_write * sizeof(uint64_t);
-        uint8_t *write_ptr = &app_loader_buf[buf_tail];
+        uint8_t *write_ptr = &obj.app_loader_buf[obj.buf_tail];
         
         /* Wait for header */
         if (header_bytes_received < sizeof(app_header))
@@ -220,21 +230,21 @@ bool app_loader_perform_dfu(void)
             uint16_t bytes_left_to_copy = sizeof(app_header) - header_bytes_received;
             uint16_t header_bytes_available = bytes_to_write <= bytes_left_to_copy ? bytes_to_write : bytes_left_to_copy;
             
-            memcpy((uint8_t*)app_header_buf + header_bytes_received, write_ptr, header_bytes_available);
+            memcpy((uint8_t*)obj.app_header_buf + header_bytes_received, write_ptr, header_bytes_available);
 
             header_bytes_received += header_bytes_available;
-            buf_tail = (buf_tail + header_bytes_available) % DFU_BUFFER_SIZE;
+            obj.buf_tail = (obj.buf_tail + header_bytes_available) % DFU_BUFFER_SIZE;
 
             if (header_bytes_received < sizeof(app_header))
                 continue;
 
-            if (!validate_app_header((void*)app_header_buf))
+            if (!validate_app_header((void*)obj.app_header_buf))
                 return false;
 
             /* Optionally - check application version */
 
             received_app_size = header->app_size;
-            curr_flash_address = apps[header->app_type].addr;
+            curr_flash_address = obj.apps[header->app_type].addr;
             end_address = curr_flash_address + received_app_size;
 
             TickType_t erase_start_tick = xTaskGetTickCount();
@@ -251,7 +261,7 @@ bool app_loader_perform_dfu(void)
 
             printf("READY\n");
 
-            xTaskNotifyGive(dfu_task_handle);
+            xTaskNotifyGive(obj.dfu_task_handle);
             continue;
         }
 
@@ -260,7 +270,7 @@ bool app_loader_perform_dfu(void)
         {
             dwords_to_write = 1;
             bytes_consumed = bytes_left;
-            memcpy(&last_word_buf, app_loader_buf + buf_tail, bytes_left);
+            memcpy(&last_word_buf, obj.app_loader_buf + obj.buf_tail, bytes_left);
             write_ptr = (uint8_t *)&last_word_buf;
         }
 
@@ -273,13 +283,13 @@ bool app_loader_perform_dfu(void)
             }
 
             curr_flash_address += dwords_to_write * sizeof(uint64_t);
-            buf_tail = (buf_tail + bytes_consumed) % DFU_BUFFER_SIZE;
+            obj.buf_tail = (obj.buf_tail + bytes_consumed) % DFU_BUFFER_SIZE;
         }
     }
 
     iwdg_feed();
 
-    if (!validate_app_crc(apps[header->app_type].addr, header->app_size, header->app_crc))
+    if (!validate_app_crc(obj.apps[header->app_type].addr, header->app_size, header->app_crc))
     {
         printf("CRC validation failed after flash\n");
         return false;
@@ -294,7 +304,7 @@ bool app_loader_perform_dfu(void)
             return false;
         }
     
-        if (!flash_program((uint32_t)&app_header, app_header_buf, sizeof(app_header_buf) / sizeof(uint64_t)))
+        if (!flash_program((uint32_t)&app_header, obj.app_header_buf, sizeof(obj.app_header_buf) / sizeof(uint64_t)))
         {
             printf("Flash program for app header error\n");
             return false;
@@ -313,7 +323,7 @@ bool app_loader_app_is_valid(void)
     if (!validate_app_header(&app_header))
         return false;
 
-    if (!validate_app_crc(apps[app_header.app_type].addr, app_header.app_size, app_header.app_crc))
+    if (!validate_app_crc(obj.apps[app_header.app_type].addr, app_header.app_size, app_header.app_crc))
         return false;
 
     printf("Application validation: OK\n");
@@ -333,16 +343,16 @@ void app_loader_jump_to_app(void)
     SysTick->LOAD = 0;
     SysTick->VAL = 0;
 
-    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(app_start + 4));
+    reset_handler_t reset_handler_func = (reset_handler_t)*((uint32_t*)(obj.app_start + 4));
     
-    SCB->VTOR = app_start;
+    SCB->VTOR = obj.app_start;
     __DSB();
     __ISB();
 
     __set_CONTROL(0);
     __ISB();
 
-    __set_MSP(*(uint32_t *)app_start);
+    __set_MSP(*(uint32_t *)obj.app_start);
 
     __enable_irq();
 
