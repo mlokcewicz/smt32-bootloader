@@ -38,6 +38,8 @@ The complete update image has the following layout:
 [32-byte header][app_size bytes of payload]
 ```
 
+The payload is a flat representation of the target Flash range. Any gaps between ELF sections must be filled with `0xFF`, which represents erased Flash. The project therefore generates binary files with `objcopy --gap-fill 0xFF`. This ensures that an ELF programmed directly with J-Link and the corresponding binary programmed through DFU have identical contents and produce the same CRC-32 value.
+
 ## Tools
 
 * CMake 3.20.0

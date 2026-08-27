@@ -102,9 +102,12 @@ static bool validate_app_header(const volatile struct app_loader_image_header *h
 
 bool validate_app_crc(uint32_t app_start_addr, uint32_t size, uint32_t expected_crc)
 {
-    /* TODO */
+    uint32_t calculated_crc = crc_calculate((uint8_t *)app_start_addr, size);
+    bool result = (calculated_crc == expected_crc);
 
-    return true;
+    printf("CRC expected:  %lX\nCRC calculated: %lX\nCRC: %s\n", expected_crc, calculated_crc, result ? "OK" : "FAIL");
+
+    return calculated_crc == expected_crc;
 }
 
 
@@ -300,7 +303,7 @@ bool app_loader_perform_dfu(void)
 
     data_exchange_set_dfu_entry_req(false);
 
-    printf("DFU finished successfully\n");
+    printf("DFU: OK\n");
 
     return true;
 }
@@ -313,7 +316,7 @@ bool app_loader_app_is_valid(void)
     if (!validate_app_crc(apps[app_header.app_type].addr, app_header.app_size, app_header.app_crc))
         return false;
 
-    printf("Application CRC: OK\n");
+    printf("Application validation: OK\n");
 
     return true;
 }

@@ -23,7 +23,7 @@ target_link_options(${CMAKE_PROJECT_NAME}.elf PRIVATE
 
 # custom targets
 add_custom_target(size ALL DEPENDS ${CMAKE_PROJECT_NAME}.elf COMMAND ${SIZE} -B ${CMAKE_PROJECT_NAME}.elf)
-add_custom_target(bin ALL DEPENDS ${CMAKE_PROJECT_NAME}.elf COMMAND ${OBJCOPY} -O binary ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin)
+add_custom_target(bin ALL DEPENDS ${CMAKE_PROJECT_NAME}.elf COMMAND ${OBJCOPY} -O binary --gap-fill 0xFF ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.bin)
 
 # generate image and header
 set(GEN_IMAGE_CMD
