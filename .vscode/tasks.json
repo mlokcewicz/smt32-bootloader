@@ -44,5 +44,10 @@
             "type": "shell",
             "command": "jlink -if swd -speed 4000 -device STM32L476RG -commanderscript .vscode/flash.jlink",
         },
+        {
+            "label": "flash header jlink",
+            "type": "shell",
+            "command": "jlink -if swd -speed 4000 -device STM32L476RG -commanderscript .vscode/flash_header.jlink",
+        },
     ]
 }

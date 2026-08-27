@@ -24,5 +24,14 @@ target_link_options(boot_${CMAKE_PROJECT_NAME}.elf PRIVATE
 )
 
 # custom targets
-add_custom_target(size ALL DEPENDS boot_${CMAKE_PROJECT_NAME}.elf COMMAND ${SIZE} -B boot_${CMAKE_PROJECT_NAME}.elf)
-add_custom_target(bin ALL DEPENDS boot_${CMAKE_PROJECT_NAME}.elf COMMAND ${OBJCOPY} -O binary boot_${CMAKE_PROJECT_NAME}.elf boot_${CMAKE_PROJECT_NAME}.bin)
+add_custom_target(boot_size ALL DEPENDS boot_${CMAKE_PROJECT_NAME}.elf COMMAND ${SIZE} -B boot_${CMAKE_PROJECT_NAME}.elf)
+add_custom_target(boot_bin ALL DEPENDS boot_${CMAKE_PROJECT_NAME}.elf COMMAND ${OBJCOPY} -O binary boot_${CMAKE_PROJECT_NAME}.elf boot_${CMAKE_PROJECT_NAME}.bin)
+
+add_custom_command(
+    TARGET boot_bin
+    POST_BUILD
+    COMMAND py ${PROJECT_SOURCE_DIR}/scripts/stm32_gen_image.py 
+    --input ${CMAKE_CURRENT_BINARY_DIR}/boot_${CMAKE_PROJECT_NAME}.bin 
+    --app-id 0 
+    --version v3.4.5 
+)
