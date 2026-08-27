@@ -7,12 +7,15 @@ Simple bootloader for ARM Cortex-M4 based STM32 microcontrollers
 * DFU over UART (based on DMA in circular mode)
 * Application CRC check
 * RAM code execution to allow self-upgrade
-* SHared memory used to exchange information with main application
+* Shared RAM memory region used to exchange information with main application
    * To application:
       * Bootloader version
    * To bootloader:
-      * Application version
       * Bootloader entry request
+* Reserved FLASH memory region to store application header used by the bootloader to validate application after update and before jump:
+   * CRC validation
+   * application size validation
+   * ability to validate application version
 
 ## DFU process
 
