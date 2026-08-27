@@ -1,15 +1,29 @@
+# Main application:
+#   py scripts/stm32_updater.py --port COM5 --app-id 1 --image build/app/stm32_bootloader_image.bin
+# Bootloader:
+#   py scripts/stm32_updater.py --port COM5 --app-id 0 --image build/boot/boot_stm32_bootloader_image.bin
+
+import argparse
 from pathlib import Path
+import struct
 import sys
 import threading
 
 import serial
 
 
-COM_PORT = "COM5"
+DEFAULT_IMAGE = Path(__file__).resolve().parent.parent / "build" / "app" / "stm32_bootloader_image.bin"
 BAUD_RATE = 115200
-BIN_FILE = Path(__file__).resolve().parent.parent / "build" / "app" / "stm32_bootloader_image.bin"
 HEADER_SIZE = 32
 READY_TIMEOUT_SECONDS = 10.0
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Send an STM32 update image over UART")
+    parser.add_argument("--port", default="COM5", help="COM port name or number (default: COM5)")
+    parser.add_argument("--app-id", type=int, choices=(0, 1), default=1, help="0 = bootloader, 1 = main app (default: 1)")
+    parser.add_argument("--image", type=Path, default=DEFAULT_IMAGE, help="update image path")
+    return parser.parse_args()
 
 
 def print_uart_logs(uart, stop_event, ready_event):
@@ -30,13 +44,21 @@ def print_uart_logs(uart, stop_event, ready_event):
                 del received[:-64]
 
 
-data = BIN_FILE.read_bytes()
+args = parse_args()
+com_port = args.port if args.port.upper().startswith("COM") else f"COM{args.port}"
+data = bytearray(args.image.read_bytes())
+
+if len(data) < HEADER_SIZE:
+    raise ValueError("Image is smaller than its 32-byte header")
+
+struct.pack_into("<I", data, 4, args.app_id)
+
 stop_event = threading.Event()
 ready_event = threading.Event()
 
-print(f"Sending {len(data)} bytes from {BIN_FILE} through {COM_PORT}...")
+print(f"Sending {len(data)} bytes from {args.image} through {com_port} (app ID: {args.app_id})...")
 
-with serial.Serial(COM_PORT, BAUD_RATE, timeout=0.1) as uart:
+with serial.Serial(com_port, BAUD_RATE, timeout=0.1) as uart:
     log_thread = threading.Thread(
         target=print_uart_logs,
         args=(uart, stop_event, ready_event),
