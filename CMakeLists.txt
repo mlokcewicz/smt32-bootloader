@@ -6,12 +6,13 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/hal/platforms/${HW_VERSION}/toolcha
 # project configuration
 project("stm32_bootloader" C CXX ASM)
 
-# global headers (FreeRTOSConfig.h)
-include_directories(app)
-
 # Application modules
 add_subdirectory(app)
 add_subdirectory(boot)
 add_subdirectory(middlewares)
 add_subdirectory(external)
 add_subdirectory(hal)
+
+# global headers (FreeRTOSConfig.h, stm32l4xx_hal_conf.h)
+target_include_directories(freertos_kernel PRIVATE hal/platforms/${HW_VERSION})
+target_include_directories(stm32l4xx_hal_driver PRIVATE hal/platforms/${HW_VERSION})

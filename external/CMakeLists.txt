@@ -35,7 +35,23 @@ add_library(stm32l4xx_hal_driver STATIC)
 
 target_include_directories(stm32l4xx_hal_driver PUBLIC stm32l4xx_hal_driver/Inc)
 
-aux_source_directory(stm32l4xx_hal_driver/Src STM32L4XX_HAL_DRIVER_SRC)
+set(STM32L4XX_HAL_DRIVER_SRC
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_cortex.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_crc.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_crc_ex.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_dma.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_flash.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_flash_ex.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_gpio.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_iwdg.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_pwr.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_pwr_ex.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_rcc.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_rcc_ex.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_uart.c
+    stm32l4xx_hal_driver/Src/stm32l4xx_hal_uart_ex.c
+)
 target_sources(stm32l4xx_hal_driver PRIVATE ${STM32L4XX_HAL_DRIVER_SRC})
 
 target_link_libraries(stm32l4xx_hal_driver cmsis_device_l4)
