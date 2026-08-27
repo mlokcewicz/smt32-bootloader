@@ -42,13 +42,18 @@ void crc_init(void)
   hcrc.Instance = CRC;
   hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
   hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
-  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
-  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_BYTE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_ENABLE;
   hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
   if (HAL_CRC_Init(&hcrc) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+uint32_t crc_calculate(uint8_t *data, uint32_t len)
+{
+  return HAL_CRC_Calculate(&hcrc, (uint32_t*)data, len) ^ 0xFFFFFFFFU; 
 }
 
 void crc_deinit(void)
